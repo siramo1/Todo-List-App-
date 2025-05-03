@@ -20,7 +20,7 @@ function AddStudent() {
     e.preventDefault();
 
     try {
-      const response = await fetch('https://todo-list-app-backend-q5ey.onrender.com/api/students', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/students`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
