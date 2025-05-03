@@ -11,7 +11,7 @@ function StudentsPage() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/students');
+        const response = await axios.get('https://todo-list-app-backend-q5ey.onrender.com/api/students');
         const sortedStudents = response.data.sort((a, b) => {
           const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a._id);
           const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b._id);
@@ -43,7 +43,7 @@ function StudentsPage() {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/api/students/${studentId}`);
+        await axios.delete(`https://todo-list-app-backend-q5ey.onrender.com/api/students/${studentId}`);
         setStudents(students.filter(student => student._id !== studentId));
         Swal.fire('Deleted!', 'Student has been deleted.', 'success');
       } catch (err) {
@@ -86,7 +86,7 @@ function StudentsPage() {
     if (isConfirmed) {
       try {
         const response = await axios.put(
-          `http://localhost:5000/api/students/${student._id}`,
+          `https://todo-list-app-backend-q5ey.onrender.com/api/students/${student._id}`,
           {
             name: formValues.name,
             age: Number(formValues.age),
