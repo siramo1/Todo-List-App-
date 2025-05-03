@@ -11,7 +11,7 @@ function StudentsPage() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/students');
+        const response = await axios.get('https://todo-list-app-backend-q5ey.onrender.com/api/students');
         const sortedStudents = response.data.sort((a, b) => {
           const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a._id);
           const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b._id);
