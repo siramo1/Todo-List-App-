@@ -44,7 +44,7 @@ function AddStudent() {
         <h1 className="text-center text-amber-50 text-3xl p-5 pl-8 pr-8 w-fit bg-gradient-to-r from-green-700 to-emerald-400 border-4 border-orange-600 rounded-2xl sm:text-4xl">Registration Form</h1><br />
       </header>
 
-      <div className="bg-cyan-200 border-8 border-orange-600 rounded-2xl w-fit h-fit text-center text-emerald-800 font-bold pb-30 mb-10 sm:pl-25 sm:pr-25"><br />
+      <div className="bg-cyan-200 border-8 border-orange-600 rounded-2xl w-fit h-fit text-center text-emerald-800 font-bold pb-3d0 mb-10 sm:pl-25 sm:pr-25"><br />
       <form onSubmit={handleSubmit}>
         <div className="flex gap-5">
           <label for="name">&nbsp;Name&nbsp;:  </label>

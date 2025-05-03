@@ -5,16 +5,14 @@ import './App.css';
 import HomePage from './pages/HomePage';
 import AddStudent from './pages/AddStudent';
 import StudentsPage from './pages/StudentsPage';
-import AllStudents from './pages/AllStudents';
 
 function App() {
     return (
     <Router>
       <Routes>
         <Route path='/' element={<HomePage />} />
-        <Route path='/addstudent' element={<AddStudent />} />
-        <Route path='/studentpage' element={<StudentsPage />} />
-        <Route path='/AllStudents' element={<AllStudents />} />
+        <Route path='/AddStudent' element={<AddStudent />} />
+        <Route path='/AllStudents' element={<StudentsPage />} />
       </Routes>
     </Router>
   );

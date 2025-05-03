@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
@@ -6,83 +7,105 @@ function StudentsPage() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // show Students
+  // Fetch students
   useEffect(() => {
-    axios.get('http://localhost:5000/api/students')
-      .then(response => {
-        // Sort by newest first (using _id timestamp or createdAt if available)
+    const fetchStudents = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/students');
         const sortedStudents = response.data.sort((a, b) => {
-          // Try createdAt first, fall back to _id timestamp
           const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a._id);
           const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b._id);
-          return dateB - dateA; // Newest first
+          return dateB - dateA;
         });
         setStudents(sortedStudents);
-      })
-      .catch(err => console.log(err))
-      .finally(() => setLoading(false));
+      } catch (err) {
+        console.error("Fetch error:", err);
+        Swal.fire('Error', 'Failed to load students', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
   }, []);
 
-  // delete Student
+  // Delete student
   const handleDelete = async (studentId) => {
-    if (!window.confirm("Are you sure you want to delete this student?")) return;
-    
-    try {
-      await axios.delete(`http://localhost:5000/api/students/${studentId}`);
-      setStudents(students.filter(student => student._id !== studentId));
-    } catch (err) {
-      console.error("Delete error:", err);
-      alert("Failed to delete student");
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`http://localhost:5000/api/students/${studentId}`);
+        setStudents(students.filter(student => student._id !== studentId));
+        Swal.fire('Deleted!', 'Student has been deleted.', 'success');
+      } catch (err) {
+        console.error("Delete error:", err);
+        Swal.fire('Error', 'Failed to delete student', 'error');
+      }
     }
   };
 
-  // edit the student
+  // Edit student
   const handleEdit = async (student) => {
-    // Create a form-like prompt
-    const formHtml = `
-      <div>
-        <label>Name:</label><br>
-        <input id="edit-name" value="${student.name}" style="width:100%"><br>
-        <label>Age:</label><br>
-        <input id="edit-age" type="number" value="${student.age}" style="width:100%"><br>
-        <label>Grade:</label><br>
-        <input id="edit-grades" value="${student.grade}" style="width:100%">
-      </div>
-    `;
-  
-    const result = await Swal.fire({
+    const { value: formValues, isConfirmed } = await Swal.fire({
       title: 'Edit Student',
-      html: formHtml,
+      html: `
+        <div class="text-left">
+          <label class="block mb-2">Name:</label>
+          <input id="swal-input1" class="swal2-input" value="${student.name || ''}">
+          
+          <label class="block mb-2 mt-4">Age:</label>
+          <input id="swal-input2" type="number" class="swal2-input" value="${student.age || ''}">
+          
+          <label class="block mb-2 mt-4">Grade:</label>
+          <input id="swal-input3" class="swal2-input" value="${student.grade || ''}">
+        </div>
+      `,
+      focusConfirm: false,
       showCancelButton: true,
       confirmButtonText: 'Save',
       cancelButtonText: 'Cancel',
-      focusConfirm: false,
       preConfirm: () => {
         return {
-          name: document.getElementById('edit-name').value,
-          age: parseInt(document.getElementById('edit-age').value),
-          grades: document.getElementById('edit-grades').value
-            .split(',')
-            .map(grade => parseFloat(grade.trim()))
-            .filter(grade => !isNaN(grade))
-        }
-      }
+          name: document.getElementById('swal-input1').value,
+          age: document.getElementById('swal-input2').value,
+          grade: document.getElementById('swal-input3').value
+        };
+      },
+      allowOutsideClick: () => !Swal.isLoading()
     });
-  
-    if (result.isConfirmed) {
+
+    if (isConfirmed) {
       try {
-        const updatedData = result.value;
         const response = await axios.put(
           `http://localhost:5000/api/students/${student._id}`,
-          updatedData
+          {
+            name: formValues.name,
+            age: Number(formValues.age),
+            grade: formValues.grade
+          }
         );
         
         setStudents(students.map(s => 
           s._id === student._id ? response.data : s
         ));
+        
+        Swal.fire('Success!', 'Student updated successfully', 'success');
       } catch (err) {
-        console.error("Edit error:", err);
-        alert("Failed to update student");
+        console.error("Edit error:", err.response?.data);
+        Swal.fire(
+          'Error!',
+          err.response?.data?.message || 'Failed to update student',
+          'error'
+        );
       }
     }
   };
@@ -97,8 +120,17 @@ function StudentsPage() {
 
   return (
     <div className="overflow-hidden w-full h-full">
-      <header className="flex justify-center mt-8">
-        <h1 className="text-center text-amber-50 text-3xl p-5 pl-8 pr-8 w-fit bg-gradient-to-r from-green-700 to-emerald-400 border-4 border-orange-600 rounded-2xl sm:text-4xl">All Students</h1>
+      <header className="flex justify-center mt-8 gap-10">
+        <h1 className="text-center text-amber-50 text-3xl p-5 pl-8 pr-8 w-fit bg-gradient-to-r from-green-700 to-emerald-400 border-4 border-orange-600 rounded-2xl sm:text-4xl">
+          All Students
+        </h1>
+        <Link 
+          to="/AddStudent" 
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 pl-8 pr-8 rounded-full flex items-center"
+        >
+          <span className="text-2xl">+</span>
+          <span className="ml-2 text-2xl">Create</span>
+        </Link>
       </header>
       
       <div className="flex justify-center items-center pt-5">  
@@ -126,8 +158,18 @@ function StudentsPage() {
                   <td className="border-4 border-orange-500 p-2">{dateAdded}</td>
                   <td className="border-4 border-orange-500 p-2">
                     <div className="flex gap-2 text-amber-50 font-mono sm:gap-8">
-                      <button onClick={() => handleEdit(student)} className="p-1 pl-3 pr-3 border-2 border-blue-700 rounded-md bg-gradient-to-r from-green-500 to-emerald-500 cursor-pointer">edit</button>
-                      <button onClick={() => handleDelete(student._id)} className="p-1 pl-2 pr-2 border-2 border-blue-700 rounded-md bg-gradient-to-r from-red-500 to-rose-500 cursor-pointer">delete</button>
+                      <button 
+                        onClick={() => handleEdit(student)} 
+                        className="p-1 pl-3 pr-3 border-2 border-blue-700 rounded-md bg-gradient-to-r from-green-500 to-emerald-500 cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(student._id)} 
+                        className="p-1 pl-2 pr-2 border-2 border-blue-700 rounded-md bg-gradient-to-r from-red-500 to-rose-500 cursor-pointer"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
